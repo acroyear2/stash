@@ -1,0 +1,11 @@
+{
+	"name": "stash",
+	"version": "0.1.0",
+	"dependencies": {
+		"tetsuo/store": "*"
+	},
+	"scripts": [
+		"index.js"
+	],
+	"repository": "tetsuo/stash"
+}

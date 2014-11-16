@@ -1,0 +1,24 @@
+{
+  "name": "stash",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "component build;open test/test.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tetsuo/stash.git"
+  },
+  "keywords": [
+    "store",
+    "localStorage",
+    "stash"
+  ],
+  "author": "Onur Gunduz <ogunduz@gmail.com> (http://onurgunduz.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tetsuo/stash/issues"
+  },
+  "homepage": "https://github.com/tetsuo/stash"
+}
