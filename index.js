@@ -1,42 +1,78 @@
 
+exports.Kind = Kind;
+exports.Entity = Entity;
 exports.get = get;
-exports.set = set;
 
 var store = require('store');
 
-var prefix = 's';
-var storeopts = { persist: true };
-
-function get (type, k, v) {
-  var pfx = prefix + '/' + type.key + '/';
-  var key = pfx + k + '/' + v;
-  var i = store.get(key);
-  if (i && i != null) {
-    var res = store.get(i);
+function get (kind, ref_key) {
+  if (!(kind instanceof Kind))
+    kind = Kind(kind);
+  var key = store.get(ref_path_(kind, ref_key));
+  if (key && key != null) {
+    var res = store.get(key);
     if (res && res != null)
       return res;
   }
+}
+
+function ref_path_ (kind, key) {
+  return ['sr', kind.name, key].join('/');
+}
+
+function Kind (name, opts) {
+  if (!(this instanceof Kind))
+    return new Kind(name, opts);
+  opts || (opts = { max_refs: 3 });
+  this.name = name;
+  this.opts = opts;
+  this.path = ['s', name].join('/');
+}
+
+function Entity (kind, key, val) {
+  if (!(this instanceof Entity))
+    return new Entity(kind, key, val);
+  this.kind = kind;
+  this.key = key;
+  this.val = val;
+  this.path = [kind.path, key].join('/');
+  this.ix_path_ = [this.path, 'ix'].join('/');
+  this.refs = [];
+}
+
+Entity.prototype.add_reference = function (key) {
+  if (this.refs.length >= this.kind.opts.max_refs)
+    this.refs.shift();
+  this.refs.push(key);
+  return this;
 };
 
-function set (type, val, key, refs) {
-  var pfx = prefix + '/' + type.key + '/';
-  var key = store.set(val, pfx + key, { persist: true });
-  var ck = Object.keys(refs).map(function (k) {
-    return store.set(key, pfx + k + '/' + refs[k], storeopts);
-  });
-  ck = ck.concat(key).join('$');
-  var ixk = pfx + 'ix';
-  var ix = store.get(ixk);
-  if (!ix)
-    store.set([ck], ixk, storeopts);
-  else {
-    if (ix.length >= type.max) {
-      var keys = ix.shift();
-      keys.split('$').forEach(function (key) {
-        store.remove(key, storeopts);
+var s_opts = {persist: true};
+
+Entity.prototype.save = function () {
+  var path = store.set(this.val, this.path, s_opts);
+
+  if (!this.refs.length)
+    return this;
+
+  var kind = this.kind;
+  
+  store.remove(this.ix_path_); // cuz that was cached
+  var ix = store.get(this.ix_path_);
+  if (ix) {
+    if (ix.length >= kind.opts.max_refs) {
+      ix.forEach(function (key) {
+        store.remove(ref_path_(kind, key), s_opts);
       });
     }
-    ix.push(ck);
-    store.set(ix, ixk, storeopts);
   }
+
+  this.refs.forEach(function (key) {
+    store.set(path, ref_path_(kind, key), s_opts)
+  });
+  store.set(this.refs, this.ix_path_, s_opts);
+
+  return this;
 };
+
+
