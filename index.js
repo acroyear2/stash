@@ -12,7 +12,8 @@ function get (kind, ref_key) {
   if (key && key != null) {
     var res = store.get(key);
     if (res && res != null)
-      return res;
+      key = key.split('/');
+      return Entity(kind, key[key.length-1], res);
   }
 }
 
@@ -37,7 +38,9 @@ function Entity (kind, key, val) {
   this.val = val;
   this.path = [kind.path, key].join('/');
   this.ix_path_ = [this.path, 'ix'].join('/');
-  this.refs = [];
+  store.remove(this.ix_path_);
+  var ix = store.get(this.ix_path_);
+  this.refs = ix || [];
 }
 
 Entity.prototype.add_reference = function (key) {
@@ -57,7 +60,9 @@ Entity.prototype.save = function () {
 
   var kind = this.kind;
   
-  store.remove(this.ix_path_); // cuz that was cached
+  // might have been cached in an old state
+  store.remove(this.ix_path_);
+
   var ix = store.get(this.ix_path_);
   if (ix) {
     if (ix.length >= kind.opts.max_refs) {

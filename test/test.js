@@ -53,5 +53,15 @@ describe('stash', function () {
     (window.localStorage.getItem('sr/k2/r2')).should.eql('s/k2/e2');
     done();
   });
-  it('should get entities by refs');
+  it('should get entities by refs', function (done) {
+    var k = Kind('k3');
+    var e = Entity(k, 'e1', 'v');
+    e.add_reference('r').save();
+    var res = stash.get('k3', 'r');
+    res.should.be.an.instanceOf(Entity);
+    Object.getOwnPropertyNames(res).forEach(function (prop) {
+      e[prop].should.eql(res[prop]);
+    });
+    done();
+  });
 });
