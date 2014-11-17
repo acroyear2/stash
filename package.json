@@ -1,7 +1,7 @@
 {
   "name": "stash",
   "version": "0.1.0",
-  "description": "",
+  "description": "get/set local storage entities with persistent references",
   "main": "index.js",
   "scripts": {
     "test": "component build;open test/test.html"
