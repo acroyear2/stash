@@ -4,7 +4,7 @@ var Kind = stash.Kind;
 var Entity = stash.Entity;
 
 describe('stash', function () {
-  before(function () {
+  after(function () {
     window.localStorage.clear();
   });
   it('should set entities and refs', function (done) {
